@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "db-explorer-template"
-version = "0.1.0"
-description = "Reusable reactive terminal explorer for SQLite databases"
+name = "brosif"
+version = "0.2.0"
+description = "Offline multilingual terminal lexicon"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -13,7 +13,10 @@ dependencies = ["rich>=13"]
 
 [project.scripts]
 db-explorer = "db_explorer.cli:main"
+brosif = "brosif.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["db_explorer*"]
+include = ["db_explorer*", "brosif*"]
 
+[tool.setuptools.package-data]
+brosif = ["sources.json"]

@@ -3,4 +3,8 @@ __pycache__/
 .DS_Store
 .venv/
 sample.db
-
+*.egg-info/
+data/*.db
+data/*.db-*
+data/sources/*
+!data/sources/.gitkeep

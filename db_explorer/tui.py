@@ -20,8 +20,9 @@ def _clip(value: object, width: int) -> str:
 
 
 class ExplorerTUI:
-    def __init__(self, adapter: ExplorerAdapter):
+    def __init__(self, adapter: ExplorerAdapter, title: str = "Database Explorer"):
         self.adapter = adapter
+        self.title = title
         self.query = ""
         self.results: list[SearchResult] = []
         self.selected = 0
@@ -147,7 +148,7 @@ class ExplorerTUI:
             self._draw_detail(screen, height, width)
             return
 
-        screen.addnstr(0, 2, "Database Explorer", width - 3, curses.A_BOLD)
+        screen.addnstr(0, 2, self.title, width - 3, curses.A_BOLD)
         screen.addnstr(2, 2, f"> {self.query}", width - 3)
 
         available = height - 6

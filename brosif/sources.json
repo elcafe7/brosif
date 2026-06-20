@@ -1,0 +1,123 @@
+[
+  {
+    "id": "oewn-2025",
+    "name": "Open English WordNet",
+    "language": "English",
+    "version": "2025",
+    "homepage": "https://github.com/globalwordnet/english-wordnet",
+    "license": "WordNet License + CC BY 4.0",
+    "attribution": "Princeton WordNet and the Open English WordNet team",
+    "purpose": "Definitions, synonyms, antonyms, hypernyms, and semantic relations",
+    "status": "installed"
+  },
+  {
+    "id": "wiktionary",
+    "name": "Wiktionary via Wiktextract",
+    "language": "Multilingual",
+    "version": "",
+    "homepage": "https://github.com/tatuylonen/wiktextract",
+    "license": "Dataset-dependent; Wiktionary CC BY-SA 4.0 / GFDL",
+    "attribution": "Wiktionary contributors",
+    "purpose": "Definitions, etymology, pronunciation, examples, and translations",
+    "status": "planned"
+  },
+  {
+    "id": "whitakers",
+    "name": "Whitaker's Words",
+    "language": "Latin → English",
+    "version": "",
+    "homepage": "https://github.com/mk270/whitakers-words",
+    "license": "Custom permissive license; verify redistribution terms",
+    "attribution": "William Whitaker and project contributors",
+    "purpose": "Classical, ecclesiastical, medieval, legal, and technical Latin",
+    "status": "planned"
+  },
+  {
+    "id": "logeion",
+    "name": "Logeion backend data",
+    "language": "Latin / Ancient Greek / Hebrew",
+    "version": "",
+    "homepage": "https://logeion.uchicago.edu/",
+    "license": "Corpus-specific; repository URL in supplied list is unavailable",
+    "attribution": "Individual lexicon editors and Logeion",
+    "purpose": "Lewis & Short, LSJ, and BDB scholarly lexica",
+    "status": "blocked"
+  },
+  {
+    "id": "morphgnt",
+    "name": "MorphGNT",
+    "language": "Koine Greek",
+    "version": "",
+    "homepage": "https://github.com/morphgnt",
+    "license": "Dataset-specific",
+    "attribution": "MorphGNT contributors",
+    "purpose": "New Testament morphology and lemma indexing",
+    "status": "planned"
+  },
+  {
+    "id": "morphhb",
+    "name": "Open Scriptures MorphHB",
+    "language": "Biblical Hebrew",
+    "version": "",
+    "homepage": "https://github.com/openscriptures/morphhb",
+    "license": "CC BY 4.0 (verify component notices)",
+    "attribution": "Open Scriptures Hebrew Bible contributors",
+    "purpose": "Hebrew Bible morphology and lemma indexing",
+    "status": "planned"
+  },
+  {
+    "id": "freedict",
+    "name": "FreeDict",
+    "language": "European language pairs",
+    "version": "",
+    "homepage": "https://github.com/freedict/fd-dictionaries",
+    "license": "Dictionary-specific",
+    "attribution": "FreeDict dictionary contributors",
+    "purpose": "German, Spanish, French, Portuguese, Swedish, and Dutch pairs",
+    "status": "planned"
+  },
+  {
+    "id": "cc-cedict",
+    "name": "CC-CEDICT",
+    "language": "Chinese → English",
+    "version": "",
+    "homepage": "https://github.com/edvardsr/cc-cedict",
+    "license": "CC BY-SA 4.0",
+    "attribution": "CC-CEDICT contributors",
+    "purpose": "Traditional/simplified Chinese, pinyin, and English glosses",
+    "status": "planned"
+  },
+  {
+    "id": "jmdict",
+    "name": "JMdict",
+    "language": "Japanese → English",
+    "version": "",
+    "homepage": "https://www.edrdg.org/jmdict/j_jmdict.html",
+    "license": "EDRDG Electronic Dictionary Licence",
+    "attribution": "Electronic Dictionary Research and Development Group",
+    "purpose": "Japanese readings, senses, forms, and English glosses",
+    "status": "planned"
+  },
+  {
+    "id": "kodict",
+    "name": "Korean Open Dictionary",
+    "language": "Korean → English",
+    "version": "",
+    "homepage": "https://krdict.korean.go.kr/",
+    "license": "Source-specific; supplied GitHub repository is unavailable",
+    "attribution": "National Institute of Korean Language",
+    "purpose": "Korean headwords and English definitions",
+    "status": "blocked"
+  },
+  {
+    "id": "openiti",
+    "name": "OpenITI / Quranic Arabic Corpus",
+    "language": "Classical / Quranic Arabic",
+    "version": "",
+    "homepage": "https://github.com/OpenITI",
+    "license": "Corpus-specific",
+    "attribution": "OpenITI and Quranic Arabic Corpus contributors",
+    "purpose": "Classical Arabic texts, morphology, and Quranic lemmas",
+    "status": "research"
+  }
+]
