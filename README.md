@@ -45,12 +45,19 @@ Search or inspect records non-interactively:
 brosif grace
 brosif "bank pos:noun"
 brosif "run lang:en source:oewn"
-brosif detail 123
-brosif stats
-brosif sources
+brosif -detail 123
+brosif -stats
+brosif -sources
 ```
 
-`brosif search <term>` remains available for backward compatibility.
+Every bare argument is treated as a lookup term. Administrative commands use
+a leading hyphen:
+
+- `-detail <id>`
+- `-stats`
+- `-sources`
+- `-fetch wordnet`
+- `-build`
 
 Search filters:
 

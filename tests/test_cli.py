@@ -19,10 +19,16 @@ class CommandLineTests(unittest.TestCase):
             normalize_argv(["--database", "/tmp/lexicon.db", "grace"]),
         )
 
-    def test_subcommands_are_unchanged(self):
-        for command in ("search", "detail", "stats", "sources", "fetch", "build"):
+    def test_hyphen_prefixed_commands_are_normalized(self):
+        for command in ("detail", "stats", "sources", "fetch", "build"):
             with self.subTest(command=command):
-                self.assertEqual([command], normalize_argv([command]))
+                self.assertEqual([command], normalize_argv([f"-{command}"]))
+                self.assertEqual([command], normalize_argv([f"--{command}"]))
+
+    def test_command_words_without_hyphen_are_search_terms(self):
+        for term in ("detail", "stats", "sources", "fetch", "build", "search"):
+            with self.subTest(term=term):
+                self.assertEqual(["search", term], normalize_argv([term]))
 
     def test_help_is_unchanged(self):
         self.assertEqual(["--help"], normalize_argv(["--help"]))

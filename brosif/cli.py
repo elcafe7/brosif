@@ -22,11 +22,11 @@ WORDNET_RELEASE_URL = (
     "https://github.com/globalwordnet/english-wordnet/releases/download/"
     "2025-edition/english-wordnet-2025-json.zip"
 )
-COMMANDS = {"search", "detail", "stats", "sources", "fetch", "build"}
+COMMANDS = {"detail", "stats", "sources", "fetch", "build"}
 
 
 def normalize_argv(argv: list[str]) -> list[str]:
-    """Treat the first non-command positional argument as a search query."""
+    """Treat bare arguments as searches and hyphen-prefixed names as commands."""
     normalized = list(argv)
     index = 0
     while index < len(normalized):
@@ -39,11 +39,14 @@ def normalize_argv(argv: list[str]) -> list[str]:
             continue
         if argument in {"-h", "--help"}:
             return normalized
+        command = argument.lstrip("-")
+        if argument.startswith("-") and command in COMMANDS:
+            normalized[index] = command
+            return normalized
         if argument.startswith("-"):
             index += 1
             continue
-        if argument not in COMMANDS:
-            normalized.insert(index, "search")
+        normalized.insert(index, "search")
         return normalized
     return normalized
 
@@ -56,7 +59,7 @@ def parser() -> argparse.ArgumentParser:
         "--database", type=Path, default=DEFAULT_DATABASE, help="lexicon SQLite file"
     )
     commands = result.add_subparsers(dest="command")
-    search = commands.add_parser("search", help="search the lexicon")
+    search = commands.add_parser("search", help=argparse.SUPPRESS)
     search.add_argument("query", nargs="+")
     search.add_argument("--limit", type=int)
     detail = commands.add_parser("detail", help="show an entry by numeric ID")
