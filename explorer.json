@@ -1,0 +1,13 @@
+{
+  "database": "sample.db",
+  "table": "items",
+  "primary_key": "id",
+  "title_column": "name",
+  "label_column": "category",
+  "search_columns": ["name", "category", "description"],
+  "list_columns": ["id", "name", "category"],
+  "detail_columns": ["id", "name", "category", "description", "created_at"],
+  "order_by": "name",
+  "limit": 50
+}
+
