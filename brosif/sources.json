@@ -11,37 +11,48 @@
     "status": "installed"
   },
   {
-    "id": "wiktionary",
-    "name": "Wiktionary via Wiktextract",
-    "language": "Multilingual",
-    "version": "",
-    "homepage": "https://github.com/tatuylonen/wiktextract",
-    "license": "Dataset-dependent; Wiktionary CC BY-SA 4.0 / GFDL",
-    "attribution": "Wiktionary contributors",
-    "purpose": "Definitions, etymology, pronunciation, examples, and translations",
-    "status": "planned"
+    "id": "wiktextract-de-2026-06",
+    "name": "German Wiktionary via Wiktextract",
+    "language": "German → English",
+    "version": "2026-06-15",
+    "homepage": "https://kaikki.org/dictionary/German/",
+    "license": "Wiktionary CC BY-SA 4.0 / GFDL; Wiktextract code MIT",
+    "attribution": "Wiktionary contributors; extraction by Tatu Ylonen's Wiktextract",
+    "purpose": "German definitions, etymology, pronunciation, examples, and inflected forms",
+    "status": "installed"
   },
   {
-    "id": "whitakers",
+    "id": "whitakers-words",
     "name": "Whitaker's Words",
     "language": "Latin → English",
-    "version": "",
+    "version": "commit 9b11477",
     "homepage": "https://github.com/mk270/whitakers-words",
-    "license": "Custom permissive license; verify redistribution terms",
-    "attribution": "William Whitaker and project contributors",
+    "license": "Whitaker permission for any and all use of program and data",
+    "attribution": "William A. Whitaker and project contributors",
     "purpose": "Classical, ecclesiastical, medieval, legal, and technical Latin",
-    "status": "planned"
+    "status": "installed"
   },
   {
-    "id": "logeion",
-    "name": "Logeion backend data",
-    "language": "Latin / Ancient Greek / Hebrew",
-    "version": "",
-    "homepage": "https://logeion.uchicago.edu/",
-    "license": "Corpus-specific; repository URL in supplied list is unavailable",
-    "attribution": "Individual lexicon editors and Logeion",
-    "purpose": "Lewis & Short, LSJ, and BDB scholarly lexica",
-    "status": "blocked"
+    "id": "perseus-lewis-short",
+    "name": "Lewis & Short",
+    "language": "Latin → English",
+    "version": "Perseus commit b5e707b",
+    "homepage": "https://github.com/PerseusDL/lexica",
+    "license": "CC BY-SA 4.0",
+    "attribution": "Charlton T. Lewis; Charles Short; Perseus Digital Library",
+    "purpose": "Scholarly Classical Latin definitions, citations, grammar, and etymology",
+    "status": "installed"
+  },
+  {
+    "id": "perseus-lsj",
+    "name": "Liddell–Scott–Jones Greek-English Lexicon",
+    "language": "Ancient / Attic Greek → English",
+    "version": "Perseus commit b5e707b",
+    "homepage": "https://github.com/PerseusDL/lexica",
+    "license": "CC BY-SA 4.0",
+    "attribution": "Henry George Liddell; Robert Scott; Henry Stuart Jones; Roderick McKenzie; Perseus Digital Library",
+    "purpose": "Homeric, Attic, Classical, and Hellenistic Greek",
+    "status": "installed"
   },
   {
     "id": "stepbible-tbesg",
@@ -88,15 +99,15 @@
     "status": "planned"
   },
   {
-    "id": "freedict",
-    "name": "FreeDict",
-    "language": "European language pairs",
-    "version": "",
-    "homepage": "https://github.com/freedict/fd-dictionaries",
-    "license": "Dictionary-specific",
-    "attribution": "FreeDict dictionary contributors",
-    "purpose": "German, Spanish, French, Portuguese, Swedish, and Dutch pairs",
-    "status": "planned"
+    "id": "freedict-fra-eng",
+    "name": "FreeDict French-English",
+    "language": "French → English",
+    "version": "0.4.1",
+    "homepage": "https://github.com/freedict/fd-dictionaries/tree/master/fra-eng",
+    "license": "GNU GPL 2.0 or later",
+    "attribution": "Horst Eyermann, John Darrington, and FreeDict contributors",
+    "purpose": "French headwords, English translations, grammar, and gender",
+    "status": "installed"
   },
   {
     "id": "cc-cedict",

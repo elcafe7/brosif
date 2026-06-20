@@ -19,6 +19,11 @@ from .builder import (
     DEFAULT_DATABASE,
     DEFAULT_GREEK,
     DEFAULT_HEBREW,
+    DEFAULT_WHITAKER,
+    DEFAULT_LEWIS_SHORT,
+    DEFAULT_LSJ,
+    DEFAULT_GERMAN,
+    DEFAULT_FRENCH,
     build_database,
 )
 from .sources import load_catalog
@@ -78,6 +83,11 @@ def parser() -> argparse.ArgumentParser:
     build.add_argument("--wordnet-archive", type=Path, default=DEFAULT_ARCHIVE)
     build.add_argument("--greek", type=Path, default=DEFAULT_GREEK)
     build.add_argument("--hebrew", type=Path, default=DEFAULT_HEBREW)
+    build.add_argument("--whitaker", type=Path, default=DEFAULT_WHITAKER)
+    build.add_argument("--lewis-short", type=Path, default=DEFAULT_LEWIS_SHORT)
+    build.add_argument("--lsj", type=Path, default=DEFAULT_LSJ)
+    build.add_argument("--german", type=Path, default=DEFAULT_GERMAN)
+    build.add_argument("--french", type=Path, default=DEFAULT_FRENCH)
     return result
 
 
@@ -123,7 +133,15 @@ def main() -> None:
             return
         if args.command == "build":
             counts = build_database(
-                args.database, args.wordnet_archive, args.greek, args.hebrew
+                args.database,
+                args.wordnet_archive,
+                args.greek,
+                args.hebrew,
+                args.whitaker,
+                args.lewis_short,
+                args.lsj,
+                args.german,
+                args.french,
             )
             summary = ", ".join(f"{language}: {count:,}" for language, count in counts.items())
             console.print(f"Built [cyan]{args.database}[/cyan] · {summary}")

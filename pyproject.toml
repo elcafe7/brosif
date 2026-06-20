@@ -9,7 +9,7 @@ description = "Offline multilingual terminal lexicon"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
-dependencies = ["rich>=13"]
+dependencies = ["rich>=13", "beta-code>=1.1.1"]
 
 [project.scripts]
 db-explorer = "db_explorer.cli:main"

@@ -9,6 +9,10 @@ The current production database contains:
 - Open English WordNet 2025: 185,129 searchable sense entries
 - STEPBible TBESG: 10,847 Biblical Greek lexemes
 - STEPBible TBESH: 8,723 Biblical Hebrew/Aramaic lexemes
+- Whitaker's Words and Lewis & Short for Latin
+- LSJ for Homeric, Attic, Classical, and Hellenistic Greek
+- German Wiktionary extracted by Wiktextract
+- FreeDict French-English
 - definitions, examples, synonyms, pronunciations, and inflected forms
 - hypernyms, antonyms, meronyms, and other semantic relation targets
 - source, version, license, and attribution metadata on every detail record
@@ -26,12 +30,20 @@ curses support.
 ```sh
 python3 -m venv .venv
 .venv/bin/python -m pip install -e .
-.venv/bin/brosif fetch wordnet
-.venv/bin/brosif build
+.venv/bin/brosif -fetch wordnet
 ```
 
-Downloaded sources and generated databases live under `data/` and are not
-committed to Git.
+The installed VPS database is already built. A complete rebuild also requires
+the ignored source files documented in [DATA_SOURCES.md](DATA_SOURCES.md):
+STEPBible TBESG/TBESH, Whitaker's Words, Perseus lexica, the German Kaikki
+extract, and FreeDict French-English. After those sources are present:
+
+```sh
+.venv/bin/brosif -build
+```
+
+Downloaded sources and the generated database live under `data/` and are not
+committed to Git because they are large and retain separate upstream licenses.
 
 ## Usage
 
@@ -53,6 +65,11 @@ brosif G3056
 brosif רֵאשִׁית
 brosif reshit
 brosif H7225
+brosif amo
+brosif "amo source:perseus-lewis-short"
+brosif λόγος source:perseus-lsj
+brosif Freiheit
+brosif liberté
 brosif -detail 123
 brosif -stats
 brosif -sources
@@ -71,6 +88,7 @@ Search filters:
 
 - `lang:<code>` — language code prefix, such as `lang:en`
 - Biblical Greek uses `lang:grc`; Biblical Hebrew/Aramaic uses `lang:hbo`
+- Latin uses `lang:la`, German `lang:de`, and French `lang:fr`
 - `source:<id>` — source ID prefix, such as `source:oewn`
 - `pos:<value>` — part-of-speech prefix, such as `pos:noun`
 

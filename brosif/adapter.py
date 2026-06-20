@@ -15,6 +15,11 @@ from .database import strip_marks
 FILTER_RE = re.compile(r"^(lang|source|pos):(.+)$", re.IGNORECASE)
 
 
+def summary(value: str, limit: int = 240) -> str:
+    text = " ".join(value.split())
+    return text if len(text) <= limit else f"{text[: limit - 1].rstrip()}…"
+
+
 def _fts_query(terms: list[str]) -> str:
     cleaned: list[str] = []
     for term in terms:
@@ -95,7 +100,7 @@ class LexiconAdapter:
                     row["headword"],
                     row["part_of_speech"],
                     row["language"],
-                    row["definition"],
+                    summary(row["definition"]),
                     row["source_name"],
                 ),
             )
@@ -146,6 +151,9 @@ class LexiconAdapter:
             ("extended_strongs", "extended Strong's"),
             ("gloss", "gloss"),
             ("morphology", "morphology"),
+            ("grammar", "grammar"),
+            ("gender", "gender"),
+            ("target_language", "target language"),
         ):
             if metadata.get(key):
                 fields.append((label, metadata[key]))
