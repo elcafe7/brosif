@@ -4,9 +4,11 @@ Brosif is a fully offline multilingual terminal lexicon built on the reactive
 Database Explorer engine. It uses a normalized SQLite schema and FTS5 search,
 with one importer per upstream dictionary format.
 
-The current production database contains Open English WordNet 2025:
+The current production database contains:
 
-- 185,129 searchable sense entries
+- Open English WordNet 2025: 185,129 searchable sense entries
+- STEPBible TBESG: 10,847 Biblical Greek lexemes
+- STEPBible TBESH: 8,723 Biblical Hebrew/Aramaic lexemes
 - definitions, examples, synonyms, pronunciations, and inflected forms
 - hypernyms, antonyms, meronyms, and other semantic relation targets
 - source, version, license, and attribution metadata on every detail record
@@ -45,6 +47,12 @@ Search or inspect records non-interactively:
 brosif grace
 brosif "bank pos:noun"
 brosif "run lang:en source:oewn"
+brosif λόγος
+brosif logos
+brosif G3056
+brosif רֵאשִׁית
+brosif reshit
+brosif H7225
 brosif -detail 123
 brosif -stats
 brosif -sources
@@ -62,6 +70,7 @@ a leading hyphen:
 Search filters:
 
 - `lang:<code>` — language code prefix, such as `lang:en`
+- Biblical Greek uses `lang:grc`; Biblical Hebrew/Aramaic uses `lang:hbo`
 - `source:<id>` — source ID prefix, such as `source:oewn`
 - `pos:<value>` — part-of-speech prefix, such as `pos:noun`
 

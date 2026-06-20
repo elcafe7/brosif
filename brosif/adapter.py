@@ -9,16 +9,20 @@ import sqlite3
 from urllib.parse import quote
 
 from db_explorer.models import RecordDetail, SearchResult
+from .database import strip_marks
 
 
 FILTER_RE = re.compile(r"^(lang|source|pos):(.+)$", re.IGNORECASE)
 
 
 def _fts_query(terms: list[str]) -> str:
-    cleaned = []
+    cleaned: list[str] = []
     for term in terms:
         tokens = re.findall(r"[\w'-]+", term, flags=re.UNICODE)
-        cleaned.extend(f'"{token.replace(chr(34), chr(34) * 2)}"*' for token in tokens)
+        for token in tokens:
+            variants = list(dict.fromkeys((token.casefold(), strip_marks(token))))
+            quoted = [f'"{variant.replace(chr(34), chr(34) * 2)}"*' for variant in variants]
+            cleaned.append(f"({' OR '.join(quoted)})" if len(quoted) > 1 else quoted[0])
     return " AND ".join(cleaned)
 
 
@@ -63,7 +67,7 @@ class LexiconAdapter:
         for key, value in filters.items():
             where.append(f"LOWER({filter_columns[key]}) LIKE ?")
             params.append(f"{value}%")
-        params.extend((" ".join(terms).casefold(), min(limit or 50, 500)))
+        params.extend((strip_marks(" ".join(terms)), min(limit or 50, 500)))
         sql = f"""
             SELECT e.id, e.headword, e.part_of_speech, e.language, e.definition,
                    s.name AS source_name,
@@ -137,6 +141,14 @@ class LexiconAdapter:
                 fields.append((label, row[column]))
         if metadata.get("synset"):
             fields.append(("synset", metadata["synset"]))
+        for key, label in (
+            ("strongs", "Strong's"),
+            ("extended_strongs", "extended Strong's"),
+            ("gloss", "gloss"),
+            ("morphology", "morphology"),
+        ):
+            if metadata.get(key):
+                fields.append((label, metadata[key]))
         for relation in relation_rows:
             fields.append((relation["relation"], relation["targets"]))
         fields.extend(

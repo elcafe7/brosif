@@ -14,7 +14,13 @@ from db_explorer.render import print_detail, print_results
 from db_explorer.tui import ExplorerTUI
 
 from .adapter import LexiconAdapter
-from .builder import DEFAULT_ARCHIVE, DEFAULT_DATABASE, build_database
+from .builder import (
+    DEFAULT_ARCHIVE,
+    DEFAULT_DATABASE,
+    DEFAULT_GREEK,
+    DEFAULT_HEBREW,
+    build_database,
+)
 from .sources import load_catalog
 
 console = Console()
@@ -70,6 +76,8 @@ def parser() -> argparse.ArgumentParser:
     fetch.add_argument("source", choices=["wordnet"])
     build = commands.add_parser("build", help="rebuild the lexicon database")
     build.add_argument("--wordnet-archive", type=Path, default=DEFAULT_ARCHIVE)
+    build.add_argument("--greek", type=Path, default=DEFAULT_GREEK)
+    build.add_argument("--hebrew", type=Path, default=DEFAULT_HEBREW)
     return result
 
 
@@ -114,8 +122,11 @@ def main() -> None:
             _fetch_wordnet()
             return
         if args.command == "build":
-            count = build_database(args.database, args.wordnet_archive)
-            console.print(f"Built [cyan]{args.database}[/cyan] with {count:,} entries")
+            counts = build_database(
+                args.database, args.wordnet_archive, args.greek, args.hebrew
+            )
+            summary = ", ".join(f"{language}: {count:,}" for language, count in counts.items())
+            console.print(f"Built [cyan]{args.database}[/cyan] · {summary}")
             return
 
         adapter = LexiconAdapter(args.database)

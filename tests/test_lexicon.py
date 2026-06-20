@@ -4,7 +4,13 @@ import tempfile
 import unittest
 
 from brosif.adapter import LexiconAdapter
-from brosif.database import create_database, finalize_source, insert_entry, insert_source
+from brosif.database import (
+    create_database,
+    finalize_source,
+    insert_entry,
+    insert_source,
+    strip_marks,
+)
 
 
 SOURCE = {
@@ -73,6 +79,10 @@ class LexiconAdapterTests(unittest.TestCase):
         with self.adapter._connect() as connection:
             with self.assertRaises(sqlite3.OperationalError):
                 connection.execute("DELETE FROM entries")
+
+    def test_script_marks_are_removed_for_search_aliases(self):
+        self.assertEqual("λογοσ", strip_marks("λόγος"))
+        self.assertEqual("ראשית", strip_marks("רֵאשִׁית"))
 
 
 if __name__ == "__main__":

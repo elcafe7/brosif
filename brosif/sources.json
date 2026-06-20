@@ -44,14 +44,36 @@
     "status": "blocked"
   },
   {
+    "id": "stepbible-tbesg",
+    "name": "STEPBible TBESG",
+    "language": "Biblical Greek",
+    "version": "local Lex snapshot",
+    "homepage": "https://www.stepbible.org/",
+    "license": "CC BY 4.0",
+    "attribution": "STEP Bible; individual records identify Abbott-Smith and other source lexica",
+    "purpose": "Greek lemmas, Strong's identifiers, transliterations, morphology, glosses, and definitions",
+    "status": "installed"
+  },
+  {
+    "id": "stepbible-tbesh",
+    "name": "STEPBible TBESH",
+    "language": "Biblical Hebrew / Aramaic",
+    "version": "local Lex snapshot",
+    "homepage": "https://www.stepbible.org/",
+    "license": "CC BY 4.0",
+    "attribution": "STEP Bible",
+    "purpose": "Hebrew and Aramaic lemmas, Strong's identifiers, transliterations, morphology, glosses, and definitions",
+    "status": "installed"
+  },
+  {
     "id": "morphgnt",
-    "name": "MorphGNT",
+    "name": "MorphGNT / Macula Greek",
     "language": "Koine Greek",
     "version": "",
     "homepage": "https://github.com/morphgnt",
     "license": "Dataset-specific",
-    "attribution": "MorphGNT contributors",
-    "purpose": "New Testament morphology and lemma indexing",
+    "attribution": "MorphGNT and Macula Greek contributors",
+    "purpose": "New Testament occurrence, syntax, and morphology layer",
     "status": "planned"
   },
   {
@@ -62,7 +84,7 @@
     "homepage": "https://github.com/openscriptures/morphhb",
     "license": "CC BY 4.0 (verify component notices)",
     "attribution": "Open Scriptures Hebrew Bible contributors",
-    "purpose": "Hebrew Bible morphology and lemma indexing",
+    "purpose": "Hebrew Bible occurrence and morphology layer",
     "status": "planned"
   },
   {

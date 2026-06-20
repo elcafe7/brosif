@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from pathlib import Path
 import sqlite3
 from typing import Iterable, Iterator
+import unicodedata
 
 
 SCHEMA = """
@@ -83,7 +84,16 @@ END;
 
 
 def normalize_headword(value: str) -> str:
-    return " ".join(value.casefold().replace("_", " ").split())
+    return " ".join(strip_marks(value).replace("_", " ").split())
+
+
+def strip_marks(value: str) -> str:
+    """Remove combining marks for accent/point-insensitive script lookup."""
+    return "".join(
+        character
+        for character in unicodedata.normalize("NFD", value)
+        if unicodedata.category(character) != "Mn"
+    ).casefold()
 
 
 @contextmanager
