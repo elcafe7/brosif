@@ -93,9 +93,12 @@ Search filters:
 - `pos:<value>` — part-of-speech prefix, such as `pos:noun`
 
 In the TUI, type to search, use arrow keys to select a result, press Enter for
-the full lexical record, and press Escape to return or exit. Searches run in
-background threads after a 150 ms debounce, and stale responses cannot replace
-newer results.
+the full lexical record, and press Escape to return or exit. Results are grouped
+under language headings with English first. Identically spelled entries in the
+same language appear once; their parts of speech, sources, and definitions are
+combined into that listing. The detail pane exposes every sense and supports
+arrow/Page Up/Page Down scrolling. Searches run in background threads after a
+150 ms debounce, and stale responses cannot replace newer results.
 
 ## Architecture
 

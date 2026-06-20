@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import sqlite3
+from typing import Any
 from urllib.parse import quote
 
 from db_explorer.models import RecordDetail, SearchResult
@@ -13,6 +14,14 @@ from .database import strip_marks
 
 
 FILTER_RE = re.compile(r"^(lang|source|pos):(.+)$", re.IGNORECASE)
+LANGUAGE_NAMES = {
+    "de": "German",
+    "en": "English",
+    "fr": "French",
+    "grc": "Greek",
+    "hbo": "Biblical Hebrew / Aramaic",
+    "la": "Latin",
+}
 
 
 def summary(value: str, limit: int = 240) -> str:
@@ -67,12 +76,14 @@ class LexiconAdapter:
         if not fts:
             return []
         where = ["entries_fts MATCH ?"]
-        params: list[object] = [fts]
+        filter_params: list[object] = [fts]
         filter_columns = {"lang": "e.language", "source": "e.source_id", "pos": "e.part_of_speech"}
         for key, value in filters.items():
             where.append(f"LOWER({filter_columns[key]}) LIKE ?")
-            params.append(f"{value}%")
-        params.extend((strip_marks(" ".join(terms)), min(limit or 50, 500)))
+            filter_params.append(f"{value}%")
+        group_limit = min(limit or 50, 500)
+        row_limit = min(max(group_limit * 10, 250), 2_500)
+        exact = strip_marks(" ".join(terms))
         sql = f"""
             SELECT e.id, e.headword, e.part_of_speech, e.language, e.definition,
                    s.name AS source_name,
@@ -81,33 +92,129 @@ class LexiconAdapter:
             FROM entries_fts
             JOIN entries e ON e.id = entries_fts.rowid
             JOIN sources s ON s.id = e.source_id
-            WHERE {' AND '.join(where)}
+            WHERE {' AND '.join(where)} AND e.language = ?
             ORDER BY exact_rank, text_rank, LENGTH(e.headword), e.headword
             LIMIT ?
         """
-        # exact-match parameter belongs after WHERE parameters in the rendered SQL.
-        exact = params[-2]
-        limit_value = params[-1]
-        query_params = [exact, *params[:-2], limit_value]
         with self._connect() as connection:
-            rows = connection.execute(sql, query_params).fetchall()
-        return [
-            SearchResult(
-                key=row["id"],
-                title=row["headword"],
-                label=f"{row['language']} · {row['part_of_speech']}",
-                values=(
-                    row["headword"],
-                    row["part_of_speech"],
-                    row["language"],
-                    summary(row["definition"]),
-                    row["source_name"],
-                ),
+            language_sql = "SELECT DISTINCT language FROM entries"
+            language_params: tuple[object, ...] = ()
+            if "lang" in filters:
+                language_sql += " WHERE LOWER(language) LIKE ?"
+                language_params = (f"{filters['lang']}%",)
+            languages = [
+                row[0]
+                for row in connection.execute(
+                    f"{language_sql} ORDER BY CASE WHEN language = 'en' THEN 0 ELSE 1 END, language",
+                    language_params,
+                )
+            ]
+            rows = []
+            for language in languages:
+                rows.extend(
+                    connection.execute(
+                        sql,
+                        [exact, *filter_params, language, row_limit],
+                    ).fetchall()
+                )
+        grouped: dict[tuple[str, str], dict[str, Any]] = {}
+        for row in rows:
+            group_key = (row["language"], strip_marks(row["headword"]))
+            item = grouped.setdefault(
+                group_key,
+                {
+                    "language": row["language"],
+                    "headword": row["headword"],
+                    "parts": [],
+                    "definitions": [],
+                    "sources": [],
+                    "rank": (row["exact_rank"], row["text_rank"], len(row["headword"])),
+                },
             )
-            for row in rows
-        ]
+            if row["part_of_speech"] not in item["parts"]:
+                item["parts"].append(row["part_of_speech"])
+            if row["definition"] not in item["definitions"]:
+                item["definitions"].append(row["definition"])
+            if row["source_name"] not in item["sources"]:
+                item["sources"].append(row["source_name"])
+
+        by_language: dict[str, list[dict[str, Any]]] = {}
+        for item in grouped.values():
+            by_language.setdefault(item["language"], []).append(item)
+        for items in by_language.values():
+            items.sort(key=lambda item: (item["rank"], strip_marks(item["headword"])))
+
+        selected: list[dict[str, Any]] = []
+        if len(by_language) <= 1:
+            selected = next(iter(by_language.values()), [])[:group_limit]
+        else:
+            english = by_language.pop("en", [])
+            english_quota = min(len(english), max(1, group_limit // 2))
+            selected.extend(english[:english_quota])
+            remaining = group_limit - len(selected)
+            language_keys = sorted(
+                by_language,
+                key=lambda code: LANGUAGE_NAMES.get(code, code).casefold(),
+            )
+            offsets = {code: 0 for code in language_keys}
+            while remaining and language_keys:
+                next_keys = []
+                for code in language_keys:
+                    offset = offsets[code]
+                    if offset < len(by_language[code]) and remaining:
+                        selected.append(by_language[code][offset])
+                        offsets[code] += 1
+                        remaining -= 1
+                    if offsets[code] < len(by_language[code]):
+                        next_keys.append(code)
+                language_keys = next_keys
+            if remaining:
+                selected.extend(english[english_quota : english_quota + remaining])
+
+        ordered = sorted(
+            selected,
+            key=lambda item: (
+                0 if item["language"] == "en" else 1,
+                LANGUAGE_NAMES.get(item["language"], item["language"]).casefold(),
+                item["rank"],
+                strip_marks(item["headword"]),
+            ),
+        )
+        results = []
+        for item in ordered:
+            sense_count = len(item["definitions"])
+            definition_preview = " • ".join(
+                summary(definition, 110) for definition in item["definitions"][:3]
+            )
+            if sense_count > 3:
+                definition_preview += f" • +{sense_count - 3} more"
+            parts = ", ".join(item["parts"])
+            sources = ", ".join(item["sources"])
+            language_name = LANGUAGE_NAMES.get(item["language"], item["language"])
+            results.append(
+                SearchResult(
+                    key=("lexeme", item["language"], strip_marks(item["headword"])),
+                    title=item["headword"],
+                    label=f"{parts} · {sense_count} sense{'s' if sense_count != 1 else ''}",
+                    values=(
+                        item["headword"],
+                        parts,
+                        language_name,
+                        definition_preview,
+                        sources,
+                    ),
+                    group=language_name,
+                )
+            )
+        return results
 
     def detail(self, key: object) -> RecordDetail | None:
+        if (
+            isinstance(key, tuple)
+            and len(key) == 3
+            and key[0] == "lexeme"
+        ):
+            return self._group_detail(str(key[1]), str(key[2]))
         with self._connect() as connection:
             row = connection.execute(
                 """
@@ -168,6 +275,76 @@ class LexiconAdapter:
             ]
         )
         return RecordDetail(key=key, fields=tuple(fields))
+
+    def _group_detail(self, language: str, normalized: str) -> RecordDetail | None:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT e.*, s.name AS source_name, s.version, s.homepage,
+                       s.license, s.attribution
+                FROM entries e JOIN sources s ON s.id = e.source_id
+                WHERE e.language = ? AND e.normalized = ?
+                ORDER BY e.part_of_speech, s.name, e.id
+                """,
+                (language, normalized),
+            ).fetchall()
+            relation_rows = connection.execute(
+                """
+                SELECT r.relation, GROUP_CONCAT(DISTINCT r.target_source_key) AS targets
+                FROM relations r
+                JOIN entries e ON e.id = r.entry_id
+                WHERE e.language = ? AND e.normalized = ?
+                GROUP BY r.relation ORDER BY r.relation
+                """,
+                (language, normalized),
+            ).fetchall()
+        if not rows:
+            return None
+        headword = rows[0]["headword"]
+        sources = list(dict.fromkeys(row["source_name"] for row in rows))
+        licenses = list(dict.fromkeys(row["license"] for row in rows))
+        attributions = list(dict.fromkeys(row["attribution"] for row in rows))
+        fields: list[tuple[str, object]] = [
+            ("headword", headword),
+            ("language", LANGUAGE_NAMES.get(language, language)),
+            ("senses", len(rows)),
+            ("sources", ", ".join(sources)),
+            ("licenses", ", ".join(licenses)),
+            ("attribution", "\n".join(attributions)),
+        ]
+        for index, row in enumerate(rows, 1):
+            metadata = json.loads(row["metadata"])
+            heading = f"sense {index} · {row['part_of_speech']} · {row['source_name']}"
+            body = row["definition"]
+            extras = []
+            if row["synonyms"]:
+                extras.append(f"Synonyms/gloss: {row['synonyms']}")
+            if row["pronunciation"]:
+                extras.append(f"Pronunciation: {row['pronunciation']}")
+            if row["examples"]:
+                extras.append(f"Examples:\n{row['examples']}")
+            if metadata.get("grammar"):
+                extras.append(f"Grammar: {metadata['grammar']}")
+            if metadata.get("strongs"):
+                extras.append(f"Strong's: {metadata['strongs']}")
+            if extras:
+                body = f"{body}\n\n" + "\n".join(extras)
+            fields.append((heading, body))
+            fields.append(
+                (
+                    f"source {index}",
+                    f"{row['source_name']} {row['version']}\n"
+                    f"License: {row['license']}\n"
+                    f"Attribution: {row['attribution']}\n"
+                    f"{row['homepage']}",
+                )
+            )
+        for relation in relation_rows:
+            fields.append((relation["relation"], relation["targets"]))
+        return RecordDetail(
+            key=f"{LANGUAGE_NAMES.get(language, language)} · {headword}",
+            fields=tuple(fields),
+        )
 
     def stats(self) -> list[sqlite3.Row]:
         with self._connect() as connection:

@@ -27,6 +27,7 @@ class ExplorerTUI:
         self.results: list[SearchResult] = []
         self.selected = 0
         self.detail: RecordDetail | None = None
+        self.detail_offset = 0
         self.generation = 0
         self.deadline: float | None = None
         self.responses: queue.SimpleQueue[
@@ -46,6 +47,7 @@ class ExplorerTUI:
         self.generation += 1
         self.deadline = time.monotonic() + DEBOUNCE_SECONDS
         self.detail = None
+        self.detail_offset = 0
         self.selected = 0
         if not self.query:
             self.results = []
@@ -104,6 +106,17 @@ class ExplorerTUI:
             if self.detail is not None:
                 if key in (27, ord("q"), curses.KEY_BACKSPACE, 127):
                     self.detail = None
+                    self.detail_offset = 0
+                elif key == curses.KEY_UP:
+                    self.detail_offset = max(0, self.detail_offset - 1)
+                elif key == curses.KEY_DOWN:
+                    self.detail_offset += 1
+                elif key == curses.KEY_PPAGE:
+                    self.detail_offset = max(0, self.detail_offset - 10)
+                elif key == curses.KEY_NPAGE:
+                    self.detail_offset += 10
+                elif key == curses.KEY_HOME:
+                    self.detail_offset = 0
                 continue
 
             if key == 27:
@@ -118,6 +131,7 @@ class ExplorerTUI:
                         self.detail = self.adapter.detail(
                             self.results[self.selected].key
                         )
+                        self.detail_offset = 0
                     except Exception as error:
                         error_message = str(error)
             elif key in (curses.KEY_BACKSPACE, 127, curses.ascii.BS):
@@ -152,17 +166,38 @@ class ExplorerTUI:
         screen.addnstr(2, 2, f"> {self.query}", width - 3)
 
         available = height - 6
+        display_rows: list[tuple[int | None, str]] = []
+        previous_group = None
+        for index, result in enumerate(self.results):
+            if result.group and result.group != previous_group:
+                display_rows.append((None, f"▾ {result.group}"))
+                previous_group = result.group
+            display_rows.append((index, f"  {result.title}  ·  {result.label}"))
+
+        selected_row = next(
+            (
+                row_number
+                for row_number, (result_index, _) in enumerate(display_rows)
+                if result_index == self.selected
+            ),
+            0,
+        )
         offset = max(
             0,
             min(
-                self.selected - available // 2,
-                max(0, len(self.results) - available),
+                selected_row - available // 2,
+                max(0, len(display_rows) - available),
             ),
         )
-        for row_number, result in enumerate(self.results[offset : offset + available]):
-            index = offset + row_number
-            line = f"{result.label:<14} {result.title}"
-            style = curses.A_REVERSE if index == self.selected else curses.A_NORMAL
+        for row_number, (result_index, line) in enumerate(
+            display_rows[offset : offset + available]
+        ):
+            if result_index is None:
+                style = curses.A_BOLD | curses.A_UNDERLINE
+            elif result_index == self.selected:
+                style = curses.A_REVERSE
+            else:
+                style = curses.A_NORMAL
             screen.addnstr(4 + row_number, 2, line, width - 3, style)
 
         if error_message:
@@ -180,17 +215,23 @@ class ExplorerTUI:
         screen.addnstr(
             0, 2, f"Record {self.detail.key}", width - 3, curses.A_BOLD
         )
-        y = 2
+        content: list[tuple[str, int]] = []
         for name, value in self.detail.fields:
-            if y >= height - 2:
-                break
-            screen.addnstr(y, 2, name, width - 3, curses.A_BOLD)
-            y += 1
+            content.append((name, curses.A_BOLD))
             for line in str(value if value is not None else "").splitlines() or [""]:
-                if y >= height - 2:
-                    break
-                screen.addnstr(y, 4, _clip(line, width - 5), width - 5)
-                y += 1
-            y += 1
-        screen.addnstr(height - 1, 2, "Esc/q returns to results", width - 3, curses.A_DIM)
+                content.append((f"  {_clip(line, width - 5)}", curses.A_NORMAL))
+            content.append(("", curses.A_NORMAL))
+
+        available = height - 3
+        max_offset = max(0, len(content) - available)
+        self.detail_offset = min(self.detail_offset, max_offset)
+        for row_number, (line, style) in enumerate(
+            content[self.detail_offset : self.detail_offset + available]
+        ):
+            screen.addnstr(2 + row_number, 2, line, width - 3, style)
+        status = (
+            f"lines {self.detail_offset + 1}-{min(len(content), self.detail_offset + available)}"
+            f"/{len(content)} | arrows/PgUp/PgDn scroll | Esc/q returns"
+        )
+        screen.addnstr(height - 1, 2, status, width - 3, curses.A_DIM)
         screen.refresh()

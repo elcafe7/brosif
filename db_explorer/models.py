@@ -12,10 +12,10 @@ class SearchResult:
     title: str
     label: str
     values: tuple[Any, ...]
+    group: str = ""
 
 
 @dataclass(frozen=True)
 class RecordDetail:
     key: Any
     fields: tuple[tuple[str, Any], ...]
-

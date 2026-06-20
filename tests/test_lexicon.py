@@ -44,11 +44,29 @@ class LexiconAdapterTests(unittest.TestCase):
             insert_entry(
                 connection,
                 source_id="test-source",
+                source_key="grace-1b",
+                language="en",
+                headword="grace",
+                part_of_speech="noun",
+                definition="elegance of movement",
+            )
+            insert_entry(
+                connection,
+                source_id="test-source",
                 source_key="grace-2",
                 language="en",
                 headword="graceful",
                 part_of_speech="adjective",
                 definition="showing elegance",
+            )
+            insert_entry(
+                connection,
+                source_id="test-source",
+                source_key="grace-de",
+                language="de",
+                headword="grace",
+                part_of_speech="noun",
+                definition="German test definition",
             )
             finalize_source(connection, "test-source")
         self.adapter = LexiconAdapter(self.database)
@@ -58,11 +76,22 @@ class LexiconAdapterTests(unittest.TestCase):
 
     def test_exact_headword_ranks_before_prefix_match(self):
         rows = self.adapter.search("grace")
-        self.assertEqual(["grace", "graceful"], [row.title for row in rows])
+        english_titles = [row.title for row in rows if row.group == "English"]
+        self.assertEqual(["grace", "graceful"], english_titles)
+        self.assertEqual("English", rows[0].group)
+        self.assertIn("2 senses", rows[0].label)
+
+    def test_results_are_grouped_by_language_with_english_first(self):
+        rows = self.adapter.search("grace")
+        self.assertEqual("English", rows[0].group)
+        self.assertEqual("German", rows[-1].group)
 
     def test_filters_part_of_speech(self):
         rows = self.adapter.search("grace pos:noun")
-        self.assertEqual(["grace"], [row.title for row in rows])
+        self.assertEqual(
+            ["grace"],
+            [row.title for row in rows if row.group == "English"],
+        )
 
     def test_searches_definition_and_synonyms(self):
         self.assertEqual("grace", self.adapter.search("unmerited")[0].title)
