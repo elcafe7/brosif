@@ -22,6 +22,30 @@ WORDNET_RELEASE_URL = (
     "https://github.com/globalwordnet/english-wordnet/releases/download/"
     "2025-edition/english-wordnet-2025-json.zip"
 )
+COMMANDS = {"search", "detail", "stats", "sources", "fetch", "build"}
+
+
+def normalize_argv(argv: list[str]) -> list[str]:
+    """Treat the first non-command positional argument as a search query."""
+    normalized = list(argv)
+    index = 0
+    while index < len(normalized):
+        argument = normalized[index]
+        if argument == "--database":
+            index += 2
+            continue
+        if argument.startswith("--database="):
+            index += 1
+            continue
+        if argument in {"-h", "--help"}:
+            return normalized
+        if argument.startswith("-"):
+            index += 1
+            continue
+        if argument not in COMMANDS:
+            normalized.insert(index, "search")
+        return normalized
+    return normalized
 
 
 def parser() -> argparse.ArgumentParser:
@@ -78,7 +102,7 @@ def _fetch_wordnet() -> None:
 
 
 def main() -> None:
-    args = parser().parse_args()
+    args = parser().parse_args(normalize_argv(sys.argv[1:]))
     try:
         if args.command == "sources":
             _show_sources()

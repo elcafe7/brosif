@@ -42,13 +42,15 @@ brosif
 Search or inspect records non-interactively:
 
 ```sh
-brosif search grace
-brosif search "bank pos:noun"
-brosif search "run lang:en source:oewn"
+brosif grace
+brosif "bank pos:noun"
+brosif "run lang:en source:oewn"
 brosif detail 123
 brosif stats
 brosif sources
 ```
+
+`brosif search <term>` remains available for backward compatibility.
 
 Search filters:
 
