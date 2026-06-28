@@ -49,7 +49,14 @@ Fetch WordNet (the only download required for a working install):
 .venv/bin/brosif -fetch wordnet
 ```
 
-The database is pre-built in `data/brosif.db`. To rebuild from scratch, place upstream sources under `data/sources/` and run:
+The database is pre-built in `data/brosif.db`. If you cloned the repo, reassemble
+it from the split tarball:
+
+```sh
+cat data/brosif.db.tar.part_a* | tar xvf - -C data/
+```
+
+To rebuild from scratch, place upstream sources under `data/sources/` and run:
 
 ```sh
 .venv/bin/brosif -build
