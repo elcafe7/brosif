@@ -6,6 +6,7 @@ import argparse
 from pathlib import Path
 import subprocess
 import sys
+from textwrap import dedent
 
 from rich.console import Console
 from rich.table import Table
@@ -64,30 +65,65 @@ def normalize_argv(argv: list[str]) -> list[str]:
 
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(
-        prog="brosif", description="Offline multilingual terminal lexicon"
+        prog="brosif",
+        description="""
+Offline multilingual terminal lexicon with full-text search.
+
+Brosif combines multiple linguistic corpora (WordNet, Biblical texts, classical
+classics, and modern dictionaries) into a single searchable database.
+        """.strip(),
+        epilog=dedent('''
+        EXAMPLES:
+          brosif                    # Interactive TUI search
+          brosif grace              # Search for "grace"
+          brosif "bank pos:noun"    # Search with filters
+          brosif -detail 123        # View entry by ID
+          brosif -stats             # Show installed corpora
+          brosif -sources           # Show source roadmap
+          brosif -fetch wordnet     # Download WordNet data
+          brosif -build             # Rebuild the database
+
+        SEARCH FILTERS:
+          lang:<code>     Language code (en, grc, hbo, la, de, fr, etc.)
+          pos:<value>     Part of speech (noun, verb, adjective, etc.)
+          source:<id>     Source identifier (oewn, grc-tb, heb-tb, etc.)
+
+        For live search with filters, use the interactive TUI (brosif without args).
+        ''').strip(),
     )
     result.add_argument(
-        "--database", type=Path, default=DEFAULT_DATABASE, help="lexicon SQLite file"
+        "--database",
+        type=Path,
+        default=DEFAULT_DATABASE,
+        help="Path to lexicon SQLite database file",
     )
     commands = result.add_subparsers(dest="command")
     search = commands.add_parser("search", help=argparse.SUPPRESS)
-    search.add_argument("query", nargs="+")
-    search.add_argument("--limit", type=int)
-    detail = commands.add_parser("detail", help="show an entry by numeric ID")
-    detail.add_argument("id", type=int)
-    commands.add_parser("stats", help="show installed corpora")
-    commands.add_parser("sources", help="show the source roadmap")
-    fetch = commands.add_parser("fetch", help="download a source archive")
-    fetch.add_argument("source", choices=["wordnet"])
-    build = commands.add_parser("build", help="rebuild the lexicon database")
-    build.add_argument("--wordnet-archive", type=Path, default=DEFAULT_ARCHIVE)
-    build.add_argument("--greek", type=Path, default=DEFAULT_GREEK)
-    build.add_argument("--hebrew", type=Path, default=DEFAULT_HEBREW)
-    build.add_argument("--whitaker", type=Path, default=DEFAULT_WHITAKER)
-    build.add_argument("--lewis-short", type=Path, default=DEFAULT_LEWIS_SHORT)
-    build.add_argument("--lsj", type=Path, default=DEFAULT_LSJ)
-    build.add_argument("--german", type=Path, default=DEFAULT_GERMAN)
-    build.add_argument("--french", type=Path, default=DEFAULT_FRENCH)
+    search.add_argument("query", nargs="+", help="Search terms and/or filters")
+    search.add_argument("--limit", type=int, help="Maximum number of results to show")
+    detail = commands.add_parser("detail", help="Display a lexical entry by its ID")
+    detail.add_argument("id", type=int, help="Numeric ID of the entry to display")
+    commands.add_parser("stats", help="Show statistics about installed corpora")
+    commands.add_parser("sources", help="Show the source catalog and roadmap")
+    fetch = commands.add_parser("fetch", help="Download upstream data sources")
+    fetch.add_argument("source", choices=["wordnet"], help="Data source to download")
+    build = commands.add_parser("build", help="Rebuild the lexicon database from sources")
+    build.add_argument("--wordnet-archive", type=Path, default=DEFAULT_ARCHIVE,
+                      help="Path to WordNet archive file")
+    build.add_argument("--greek", type=Path, default=DEFAULT_GREEK,
+                      help="Path to Greek lexical data")
+    build.add_argument("--hebrew", type=Path, default=DEFAULT_HEBREW,
+                      help="Path to Hebrew/Biblical data")
+    build.add_argument("--whitaker", type=Path, default=DEFAULT_WHITAKER,
+                      help="Path to Whitaker's Words data")
+    build.add_argument("--lewis-short", type=Path, default=DEFAULT_LEWIS_SHORT,
+                      help="Path to Lewis & Short Latin data")
+    build.add_argument("--lsj", type=Path, default=DEFAULT_LSJ,
+                      help="Path to LSJ Greek data")
+    build.add_argument("--german", type=Path, default=DEFAULT_GERMAN,
+                      help="Path to German Wiktionary data")
+    build.add_argument("--french", type=Path, default=DEFAULT_FRENCH,
+                      help="Path to FreeDict French-English data")
     return result
 
 

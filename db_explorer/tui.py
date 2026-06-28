@@ -13,10 +13,32 @@ from .models import RecordDetail, SearchResult
 
 DEBOUNCE_SECONDS = 0.15
 
+# Curses color pairs (initialized in _init_colors)
+PAIR_HEADER = 1
+PAIR_PROMPT = 2
+PAIR_GROUP = 3
+PAIR_SELECTED = 4
+PAIR_DIM = 5
+PAIR_FIELD = 6
 
-def _clip(value: object, width: int) -> str:
-    text = str(value if value is not None else "").replace("\n", " ")
-    return text[: max(0, width)]
+
+def _wrap(value: object, width: int) -> list[str]:
+    text = str(value if value is not None else "")
+    if width <= 0:
+        return [text]
+    lines: list[str] = []
+    for paragraph in text.split("\n"):
+        if not paragraph:
+            lines.append("")
+            continue
+        while len(paragraph) > width:
+            break_at = paragraph.rfind(" ", 0, width)
+            if break_at <= 0:
+                break_at = width
+            lines.append(paragraph[:break_at])
+            paragraph = paragraph[break_at:].lstrip()
+        lines.append(paragraph)
+    return lines or [""]
 
 
 class ExplorerTUI:
@@ -42,6 +64,18 @@ class ExplorerTUI:
             curses.wrapper(self._main)
         finally:
             self.executor.shutdown(wait=False, cancel_futures=True)
+
+    def _init_colors(self) -> None:
+        if not curses.has_colors():
+            return
+        curses.start_color()
+        curses.use_default_colors()
+        curses.init_pair(PAIR_HEADER, curses.COLOR_CYAN, -1)
+        curses.init_pair(PAIR_PROMPT, curses.COLOR_GREEN, -1)
+        curses.init_pair(PAIR_GROUP, curses.COLOR_CYAN, -1)
+        curses.init_pair(PAIR_SELECTED, curses.COLOR_WHITE, curses.COLOR_BLUE)
+        curses.init_pair(PAIR_DIM, curses.COLOR_WHITE, -1)
+        curses.init_pair(PAIR_FIELD, curses.COLOR_CYAN, -1)
 
     def _schedule_search(self) -> None:
         self.generation += 1
@@ -84,6 +118,7 @@ class ExplorerTUI:
         return error_message
 
     def _main(self, screen: curses.window) -> None:
+        self._init_colors()
         try:
             curses.curs_set(1)
         except curses.error:
@@ -162,8 +197,10 @@ class ExplorerTUI:
             self._draw_detail(screen, height, width)
             return
 
-        screen.addnstr(0, 2, self.title, width - 3, curses.A_BOLD)
-        screen.addnstr(2, 2, f"> {self.query}", width - 3)
+        screen.addnstr(0, 2, self.title, width - 3,
+                        curses.color_pair(PAIR_HEADER) | curses.A_BOLD)
+        screen.addnstr(2, 2, f"> {self.query}", width - 3,
+                        curses.color_pair(PAIR_PROMPT))
 
         available = height - 6
         display_rows: list[tuple[int | None, str]] = []
@@ -193,9 +230,9 @@ class ExplorerTUI:
             display_rows[offset : offset + available]
         ):
             if result_index is None:
-                style = curses.A_BOLD | curses.A_UNDERLINE
+                style = curses.color_pair(PAIR_GROUP) | curses.A_BOLD | curses.A_UNDERLINE
             elif result_index == self.selected:
-                style = curses.A_REVERSE
+                style = curses.color_pair(PAIR_SELECTED)
             else:
                 style = curses.A_NORMAL
             screen.addnstr(4 + row_number, 2, line, width - 3, style)
@@ -206,20 +243,22 @@ class ExplorerTUI:
             status = "waiting to search..."
         else:
             status = f"{len(self.results)} results | arrows navigate | Enter opens"
-        screen.addnstr(height - 1, 2, status, width - 3, curses.A_DIM)
+        screen.addnstr(height - 1, 2, status, width - 3,
+                        curses.color_pair(PAIR_DIM) | curses.A_DIM)
         screen.move(2, min(width - 2, len(self.query) + 4))
         screen.refresh()
 
     def _draw_detail(self, screen: curses.window, height: int, width: int) -> None:
         assert self.detail is not None
         screen.addnstr(
-            0, 2, f"Record {self.detail.key}", width - 3, curses.A_BOLD
+            0, 2, f"Record {self.detail.key}", width - 3,
+            curses.color_pair(PAIR_HEADER) | curses.A_BOLD
         )
         content: list[tuple[str, int]] = []
         for name, value in self.detail.fields:
-            content.append((name, curses.A_BOLD))
-            for line in str(value if value is not None else "").splitlines() or [""]:
-                content.append((f"  {_clip(line, width - 5)}", curses.A_NORMAL))
+            content.append((name, curses.color_pair(PAIR_FIELD) | curses.A_BOLD))
+            for line in _wrap(value, width - 5):
+                content.append((f"  {line}", curses.A_NORMAL))
             content.append(("", curses.A_NORMAL))
 
         available = height - 3
@@ -233,5 +272,6 @@ class ExplorerTUI:
             f"lines {self.detail_offset + 1}-{min(len(content), self.detail_offset + available)}"
             f"/{len(content)} | arrows/PgUp/PgDn scroll | Esc/q returns"
         )
-        screen.addnstr(height - 1, 2, status, width - 3, curses.A_DIM)
+        screen.addnstr(height - 1, 2, status, width - 3,
+                        curses.color_pair(PAIR_DIM) | curses.A_DIM)
         screen.refresh()
