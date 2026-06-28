@@ -1,108 +1,119 @@
 # Brosif
 
-Brosif is a fully offline multilingual terminal lexicon built on the reactive
-Database Explorer engine. It uses a normalized SQLite schema and FTS5 search,
-with one importer per upstream dictionary format.
+**Offline multilingual terminal lexicon** — search across English, Greek, Hebrew, Latin, German, and French from a single database, no internet required.
 
-The current production database contains:
+Brosif combines multiple linguistic corpora (WordNet, biblical texts, classical lexicons, and modern dictionaries) into a 480 MB SQLite database with FTS5 full-text search. It ships with a curses TUI, a Rich-powered CLI, and a lightweight web interface.
 
-- Open English WordNet 2025: 185,129 searchable sense entries
-- STEPBible TBESG: 10,847 Biblical Greek lexemes
-- STEPBible TBESH: 8,723 Biblical Hebrew/Aramaic lexemes
-- Whitaker's Words and Lewis & Short for Latin
-- LSJ for Homeric, Attic, Classical, and Hellenistic Greek
-- German Wiktionary extracted by Wiktextract
-- FreeDict French-English
-- definitions, examples, synonyms, pronunciations, and inflected forms
-- hypernyms, antonyms, meronyms, and other semantic relation targets
-- source, version, license, and attribution metadata on every detail record
+---
 
-The source catalog also tracks Wiktionary/Wiktextract, Whitaker's Words,
-FreeDict, CC-CEDICT, JMdict, MorphGNT, MorphHB, LSJ, Lewis & Short, BDB, and
-other proposed corpora without pretending their formats or licenses are
-interchangeable.
+## Highlights
 
-## Install and build
+- **Fully offline** — no API calls, no network dependency after build
+- **Multilingual** — English, Biblical Greek, Biblical Hebrew/Aramaic, Classical/Latin, German, French
+- **Fast search** — FTS5 with BM25 ranking, 150 ms debounced background queries
+- **Grouped results** — identical spellings in the same language collapse into one listing with combined senses
+- **Rich detail view** — definitions, examples, synonyms, pronunciation, etymology, morphology, Strong's numbers, and source attribution
+- **Three interfaces** — interactive curses TUI, CLI with Rich tables, and a browser-based web UI
 
-Requires Python 3.10 or newer, SQLite with FTS5, `curl`, and a terminal with
-curses support.
+---
+
+## Corpora
+
+| Source | Language | Entries | License |
+|--------|----------|---------|---------|
+| Open English WordNet 2025 | English | 185,129 | CC BY 4.0 / Princeton WN |
+| STEPBible TBESG | Biblical Greek | 10,847 | CC BY 4.0 |
+| STEPBible TBESH | Biblical Hebrew/Aramaic | 8,723 | CC BY 4.0 |
+| Whitaker's Words | Latin | broad | Public domain |
+| Lewis & Short | Latin | full | CC BY-SA 4.0 |
+| LSJ (Perseus) | Greek (Homer through Koiné) | full | CC BY-SA 4.0 |
+| German Wiktionary | German | Wiktextract | CC BY-SA 4.0 |
+| FreeDict fra-eng | French | 0.4.1 | GPL 2.0+ |
+
+---
+
+## Install
+
+Requires **Python 3.10+**, **SQLite with FTS5**, and **curl**.
 
 ```sh
+git clone git@github.com:elcafe7/brosif.git
+cd brosif
 python3 -m venv .venv
 .venv/bin/python -m pip install -e .
+```
+
+Fetch WordNet (the only download required for a working install):
+
+```sh
 .venv/bin/brosif -fetch wordnet
 ```
 
-The installed VPS database is already built. A complete rebuild also requires
-the ignored source files documented in [DATA_SOURCES.md](DATA_SOURCES.md):
-STEPBible TBESG/TBESH, Whitaker's Words, Perseus lexica, the German Kaikki
-extract, and FreeDict French-English. After those sources are present:
+The database is pre-built in `data/brosif.db`. To rebuild from scratch, place upstream sources under `data/sources/` and run:
 
 ```sh
 .venv/bin/brosif -build
 ```
 
-Downloaded sources and the generated database live under `data/` and are not
-committed to Git because they are large and retain separate upstream licenses.
+See [DATA_SOURCES.md](DATA_SOURCES.md) for provenance, checksums, and licensing details.
+
+---
 
 ## Usage
 
-Launch live search:
+### Interactive TUI
 
 ```sh
 brosif
 ```
 
-Search or inspect records non-interactively:
+Type to search, arrow keys to navigate, Enter to open a record, Escape to return or exit. Results are grouped under language headings (English first).
+
+### CLI search
 
 ```sh
 brosif grace
+brosif λόγος
 brosif "bank pos:noun"
 brosif "run lang:en source:oewn"
-brosif λόγος
-brosif logos
-brosif G3056
-brosif רֵאשִׁית
-brosif reshit
-brosif H7225
 brosif amo
 brosif "amo source:perseus-lewis-short"
-brosif λόγος source:perseus-lsj
 brosif Freiheit
 brosif liberté
-brosif -detail 123
-brosif -stats
-brosif -sources
 ```
 
-Every bare argument is treated as a lookup term. Administrative commands use
-a leading hyphen:
+### Filters
 
-- `-detail <id>`
-- `-stats`
-- `-sources`
-- `-fetch wordnet`
-- `-build`
+Append filter tokens to any search query:
 
-Search filters:
+| Filter | Example | Description |
+|--------|---------|-------------|
+| `lang:<code>` | `lang:grc` | Language prefix (`en`, `grc`, `hbo`, `la`, `de`, `fr`) |
+| `pos:<value>` | `pos:noun` | Part of speech |
+| `source:<id>` | `source:oewn` | Source identifier |
 
-- `lang:<code>` — language code prefix, such as `lang:en`
-- Biblical Greek uses `lang:grc`; Biblical Hebrew/Aramaic uses `lang:hbo`
-- Latin uses `lang:la`, German `lang:de`, and French `lang:fr`
-- `source:<id>` — source ID prefix, such as `source:oewn`
-- `pos:<value>` — part-of-speech prefix, such as `pos:noun`
+### Commands
 
-In the TUI, type to search, use arrow keys to select a result, press Enter for
-the full lexical record, and press Escape to return or exit. Results are grouped
-under language headings with English first. Identically spelled entries in the
-same language appear once; their parts of speech, sources, and definitions are
-combined into that listing. The detail pane exposes every sense and supports
-arrow/Page Up/Page Down scrolling. Searches run in background threads after a
-150 ms debounce, and stale responses cannot replace newer results.
+```sh
+brosif -detail 123       # view entry by ID
+brosif -stats            # show installed corpora
+brosif -sources          # show source catalog and roadmap
+brosif -fetch wordnet    # download WordNet archive
+brosif -build            # rebuild the database
+```
+
+### Web UI
+
+```sh
+cd web && npm start
+# open http://localhost:3847
+```
+
+---
 
 ## Architecture
 
-```text
+```
 upstream releases
       │
       ▼
@@ -114,17 +125,26 @@ entries + relations + sources ── FTS5 index
       ▼
 LexiconAdapter
       │
-      ├── curses live UI
-      └── Rich CLI output
+      ├── curses TUI (color)
+      ├── Rich CLI tables
+      └── Node.js web server
 ```
 
-`db_explorer/` remains the reusable UI engine. `brosif/` owns the lexical
-schema, source catalog, importers, ranking, filters, and commands.
+- **`brosif/`** — lexical schema, source catalog, importers, ranking, CLI
+- **`db_explorer/`** — reusable UI engine (curses + Rich)
+- **`web/`** — lightweight Node.js HTTP server and single-page frontend
+- **`data/`** — generated database and downloaded sources (gitignored)
 
-See [DATA_SOURCES.md](DATA_SOURCES.md) for provenance and licensing notes.
+---
 
 ## Tests
 
 ```sh
 .venv/bin/python -m unittest discover -s tests -v
 ```
+
+---
+
+## License
+
+MIT. Individual data sources carry their own licenses — see [DATA_SOURCES.md](DATA_SOURCES.md).
