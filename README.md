@@ -147,4 +147,10 @@ LexiconAdapter
 
 ## License
 
-MIT. Individual data sources carry their own licenses — see [DATA_SOURCES.md](DATA_SOURCES.md).
+Brosif is released under the
+[Creative Commons Attribution-NonCommercial 4.0 International](https://creativecommons.org/licenses/by-nc/4.0/)
+license (CC BY-NC 4.0).
+
+Individual data sources carry their own licenses — see
+[DATA_SOURCES.md](DATA_SOURCES.md) for full provenance, checksums, and
+attribution requirements for each corpus.

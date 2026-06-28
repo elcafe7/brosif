@@ -8,7 +8,7 @@ version = "0.2.0"
 description = "Offline multilingual terminal lexicon"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = "CC-BY-NC-4.0"
 dependencies = ["rich>=13", "beta-code>=1.1.1"]
 
 [project.scripts]
