@@ -43,10 +43,19 @@ python3 -m venv .venv
 .venv/bin/python -m pip install -e .
 ```
 
+Use `scripts/brosif` rather than `.venv/bin/brosif`. The launcher prefers the
+project venv and rebuilds it if the interpreter is gone — the usual failure
+after a Homebrew Python upgrade, which leaves the venv shebang pointing at a
+deleted Cellar path.
+
+```sh
+alias brosif="$PWD/scripts/brosif"
+```
+
 Fetch WordNet (the only download required for a working install):
 
 ```sh
-.venv/bin/brosif -fetch wordnet
+./scripts/brosif -fetch wordnet
 ```
 
 The database is pre-built in `data/brosif.db`. If you cloned the repo, reassemble
@@ -59,7 +68,7 @@ cat data/brosif.db.tar.part_a* | tar xvf - -C data/
 To rebuild from scratch, place upstream sources under `data/sources/` and run:
 
 ```sh
-.venv/bin/brosif -build
+./scripts/brosif -build
 ```
 
 See [DATA_SOURCES.md](DATA_SOURCES.md) for provenance, checksums, and licensing details.
@@ -137,6 +146,7 @@ LexiconAdapter
       └── Node.js web server
 ```
 
+- **`scripts/brosif`** — project launcher (`python -m brosif`) that repairs a stale venv
 - **`brosif/`** — lexical schema, source catalog, importers, ranking, CLI
 - **`db_explorer/`** — reusable UI engine (curses + Rich)
 - **`web/`** — lightweight Node.js HTTP server and single-page frontend

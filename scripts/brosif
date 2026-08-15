@@ -1,0 +1,52 @@
+#!/bin/sh
+# Launch Brosif from the project tree. Prefer the local venv and repair it
+# when an upgrade (Homebrew Python, moved interpreter) leaves a dead shebang.
+
+set -eu
+
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+VENV_PY="$ROOT/.venv/bin/python"
+
+python_ok() {
+    [ -n "${1:-}" ] && [ -x "$1" ] && "$1" -c "import sys" >/dev/null 2>&1
+}
+
+module_ok() {
+    python_ok "$1" && "$1" -c "import brosif" >/dev/null 2>&1
+}
+
+find_bootstrap_python() {
+    candidate=""
+    resolved=""
+    for candidate in python3 python3.12 /opt/homebrew/bin/python3 /usr/bin/python3
+    do
+        case $candidate in
+            /*)
+                resolved=$candidate
+                ;;
+            *)
+                resolved=$(command -v "$candidate" 2>/dev/null) || continue
+                ;;
+        esac
+        if python_ok "$resolved"; then
+            printf '%s\n' "$resolved"
+            return 0
+        fi
+    done
+    return 1
+}
+
+if ! python_ok "$VENV_PY"; then
+    echo "brosif: local venv interpreter is missing or broken; repairing..." >&2
+    BOOTSTRAP=$(find_bootstrap_python) || {
+        echo "brosif: no working Python 3 interpreter found" >&2
+        exit 1
+    }
+    "$BOOTSTRAP" -m venv --clear "$ROOT/.venv"
+    "$VENV_PY" -m pip install -e "$ROOT"
+elif ! module_ok "$VENV_PY"; then
+    echo "brosif: package missing from venv; reinstalling..." >&2
+    "$VENV_PY" -m pip install -e "$ROOT"
+fi
+
+exec "$VENV_PY" -m brosif "$@"
